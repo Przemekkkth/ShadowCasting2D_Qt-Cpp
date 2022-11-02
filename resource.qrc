@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/light_cast.png</file>
+    </qresource>
+</RCC>
