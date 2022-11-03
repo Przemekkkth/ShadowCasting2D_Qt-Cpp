@@ -40,7 +40,7 @@ private:
     bool m_mouseReleased = false;
     bool m_mousePressed = false;
 
-    QImage *sprLightCast;
+    const QImage *sprLightCast;
     QImage *buffLightRay;
     QImage *buffLightTex;
 
@@ -60,7 +60,7 @@ private slots:
 protected:
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-
+    virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 };
 
 #endif // SCENE_H

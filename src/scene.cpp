@@ -5,10 +5,12 @@
 #include <QGraphicsLineItem>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsPathItem>
+#include <QPainter>
+#include <QRgb>
 #include <algorithm>
 
 Scene::Scene(QObject *parent)
-    : QGraphicsScene(parent)
+    : QGraphicsScene(parent), sprLightCast(new QImage(":/res/light_cast.png"))
 {
     setSceneRect(0,0, SCREEN_SIZE.width(), SCREEN_SIZE.height());
     //
@@ -37,7 +39,7 @@ bool Scene::OnUserCreate()
         world[x * nWorldWidth + (nWorldWidth - 2)].exist = true;
     }
 
-    sprLightCast = new QImage(":/res/light_cast.png");
+
 
     // Create some screen-sized off-screen buffers for lighting effect
     buffLightTex = new QImage(SCREEN_SIZE.width(), SCREEN_SIZE.height(), QImage::Format_RGB32);
@@ -81,11 +83,19 @@ void Scene::OnUserUpdate()
     vecVisibilityPolygonPoints.resize(std::distance(vecVisibilityPolygonPoints.begin(), it));
     if(m_mousePressed && vecVisibilityPolygonPoints.size() > 1)
     {
-        QGraphicsPixmapItem* pItem = new QGraphicsPixmapItem(QPixmap::fromImage(*sprLightCast));
-        pItem->setPos(fSourceX-255, fSourceY-255);
-        addItem(pItem);
+        QPainter painter1;
+        painter1.begin(buffLightTex);
+        //painter1.fillRect(buffLightTex->rect(), QBrush(QColor(Qt::black)));
+        buffLightTex->fill(QColor(Qt::black));
+        painter1.drawImage(QRectF(fSourceX - 255, fSourceY - 255, 512, 512), *sprLightCast, QRectF(0,0, 512, 512));
+        painter1.end();
 
-
+        QPainter painter2;
+        painter2.begin(buffLightRay);
+        //painter2.fillRect(buffLightTex->rect(), QBrush(QColor(Qt::black)));
+        buffLightRay->fill(QColor(Qt::black));
+        painter2.setBrush(QBrush(QColor(Qt::red)));
+        painter2.setPen(QPen(QColor(Qt::red)));
         for (int i = 0; i < vecVisibilityPolygonPoints.size() - 1; i++)
         {
             QPainterPath path;
@@ -97,10 +107,7 @@ void Scene::OnUserUpdate()
 
             path.lineTo(vecVisibilityPolygonPoints[i+1].x,
                         vecVisibilityPolygonPoints[i+1].y);
-            QGraphicsPathItem* pathItem = new QGraphicsPathItem(path);
-            pathItem->setPen(QPen(QBrush(QColor(Qt::red)),2));
-            pathItem->setBrush(QBrush(QColor(Qt::yellow)));
-            addItem(pathItem);
+            painter2.drawPath(path);
         }
 
         QPainterPath path;
@@ -112,11 +119,26 @@ void Scene::OnUserUpdate()
 
         path.lineTo(vecVisibilityPolygonPoints[0].x,
                     vecVisibilityPolygonPoints[0].y);
-        QGraphicsPathItem* pathItem = new QGraphicsPathItem(path);
-        pathItem->setPen(QPen(QBrush(QColor(Qt::red)),2));
-        pathItem->setBrush(QBrush(QColor(Qt::yellow)));
-        addItem(pathItem);
-
+        painter2.drawPath(path);
+        painter2.end();
+//        QGraphicsPathItem* pathItem = new QGraphicsPathItem(path);
+//        pathItem->setPen(QPen(QBrush(QColor(Qt::red)),2));
+//        pathItem->setBrush(QBrush(QColor(Qt::yellow)));
+//        addItem(pathItem);
+        QImage resultImage(SCREEN_SIZE, QImage::Format_RGB32);
+        resultImage.fill(Qt::black);
+        for (int x = 0; x < SCREEN_SIZE.width(); x++)
+            for (int y = 0; y < SCREEN_SIZE.height(); y++)
+            {
+                if(buffLightRay->pixelColor(x,y).red() > 0)
+                {
+                    resultImage.setPixelColor(x,y, buffLightTex->pixelColor(x, y));
+                }
+            }
+        clear();
+        QGraphicsPixmapItem* pItem = new QGraphicsPixmapItem(QPixmap::fromImage(resultImage));
+        pItem->setPos(0, 0);
+        addItem(pItem);
 
     }
 
@@ -427,4 +449,11 @@ void Scene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         m_mousePressed = true;
     }
     QGraphicsScene::mousePressEvent(event);
+}
+
+void Scene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+{
+    fSourceX = event->scenePos().x();
+    fSourceY = event->scenePos().y();
+    QGraphicsScene::mouseMoveEvent(event);
 }
