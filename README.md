@@ -19,3 +19,4 @@ qmake && make
 * [Qt](https://www.qt.io/) - Cross-Platform software for embedded & desktop
 * [Github](https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/OneLoneCoder_PGE_ShadowCasting2D.cpp) - inspiration
 * [PNG](https://github.com/OneLoneCoder/Javidx9/blob/master/PixelGameEngine/SmallerProjects/assets/light_cast.png) - source of light_cast.png
+* [yt](https://youtu.be/1_lNAxxU3U8) - gameplay
